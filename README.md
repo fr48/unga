@@ -13,14 +13,14 @@ There is currently a battle underway over who has control over the Internet. Is 
 We use natural language processing tools to try to classify these countries into the side with countries they are the most similar to.
 
 ### Methodology:
-GitHub.io link
+
+_methodology.doc_
 
 ### Data:
 
 Text files in the `data` directory, broken out by General Assembly session and year (##-YYYY). Each file has the file format (XXX_##_YYYY.txt) where the first three letters refer to the country code. The directory contains statements from representatives of member countries giving their position on world topics from 1970 to 2018. 
 
-The original files are available on Harvard Dataverse as [The UN General Debate Corpus](https://data
-verse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/0TJX8Y).
+The original files are available on Harvard Dataverse as [The UN General Debate Corpus](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/0TJX8Y).
 
 ### Code:
 
