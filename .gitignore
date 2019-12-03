@@ -1,0 +1,8 @@
+# Packages #
+############
+.zip
+
+# Generated Files *
+###################
+.ipynb_checkpoints
+
