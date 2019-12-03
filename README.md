@@ -1,8 +1,10 @@
 # Classifying the Digital Deciders
 
-Global and Open				Sovereign and Controlled
-<-------------------------------------------------------------->
-                     Digital Deciders
+`Global and Open				Sovereign and Controlled`
+
+`<-------------------------------------------------------------->`
+
+`                     Digital Deciders                           `
 
 This repository contains Jupyter notebooks, python code (.py), and data files used to classify "Digital Deciders" on how they view the future of the Internet.
 
