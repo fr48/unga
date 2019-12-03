@@ -13,7 +13,8 @@ There is currently a battle underway over who has control over the Internet. Is 
 We use natural language processing tools to try to classify these countries into the side with countries they are the most similar to.
 
 ### Methodology:
-GitHub.io link
+
+_methodology.doc_
 
 ### Data:
 
