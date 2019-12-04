@@ -160,3 +160,182 @@ cs_sovereign=cs_sovereign.rename(columns={0: "sovereign"})
 
 # compare in one table
 cs = pd.concat([cs_open, cs_sovereign], axis=1, sort=False)
+
+#################
+# Economics
+#################
+
+file_list = []
+file_name = "un/output/ec_deciders.csv"
+with open(file_name) as f_input:
+    file_list = f_input.read().split('\n')
+
+## Run the Deciders Against the Corpus to get comparison
+deciders = []
+for one_file in file_list:
+    decider = "un/data/"+one_file
+    with open(decider) as f_input:
+        deciders.append(f_input.read())
+
+sovereigns = []
+file_name = "un/output/ec_sov_corpus.csv"
+with open(file_name) as f_input:
+    sovereigns = f_input.read().split('\n')
+
+currents = []
+file_name = "un/output/ec_op_corpus.csv"
+with open(file_name) as f_input:
+    currents = f_input.read().split('\n')
+
+## Open Internet TF/IDF
+
+#define the vectorizer, and the ngram range (one to two words)
+#3-gram would be nice but I keep running out of memory
+eo_vectorizer = TfidfVectorizer(ngram_range=(1, 2))
+
+#fit the corpus to the vectorizer, and get the feature names
+eo_vectors = eo_vectorizer.fit_transform(currents)
+eo_feature_names = eo_vectorizer.get_feature_names()
+eo_dense = eo_vectors.todense()
+eo_denselist = eo_dense.tolist()
+
+#put the resulting calculations into a df and use feature_names for column names
+eo_df = pd.DataFrame(eo_denselist, columns=eo_feature_names)
+
+#use the same open vectorizers i used for the deciders
+eo_vectors = eo_vectorizer.transform(deciders)
+eo_feature_names = eo_vectorizer.get_feature_names()
+eo_dense = eo_vectors.todense()
+eo_denselist = eo_dense.tolist()
+
+#deciders using the open vectorizer
+#eodf = pd.DataFrame(eo_denselist)
+eodf = pd.DataFrame(eo_denselist, columns=eo_feature_names, index=file_list)
+
+# there is a lot of 0.00 so just pull out a few specific features
+
+# compare deciders with open
+counts = cosine_similarity(eo_df,eodf)
+ec_open = pd.DataFrame(counts.T, index=file_list)
+ec_open=ec_open.rename(columns={0: "open"})
+
+## Sovereign Internet TF/IDF
+
+#define the vectorizer, and the ngram range (one to three words)
+es_vectorizer = TfidfVectorizer(ngram_range=(1, 2))
+
+#fit the corpus to the vectorizer, and get the feature names
+es_vectors = es_vectorizer.fit_transform(sovereigns)
+es_feature_names = es_vectorizer.get_feature_names()
+es_dense = es_vectors.todense()
+es_denselist = es_dense.tolist()
+
+#put the resulting calculations into a df and use feature_names for column names
+es_df = pd.DataFrame(es_denselist, columns=es_feature_names)
+
+#use the same sovereign vectorizers i used
+es_vectors = es_vectorizer.transform(deciders)
+es_feature_names = es_vectorizer.get_feature_names()
+es_dense = es_vectors.todense()
+es_denselist = es_dense.tolist()
+
+#deciders using the sovereign vectorizer
+esdf = pd.DataFrame(es_denselist, columns=es_feature_names, index=file_list)
+
+# compare deciders with sovereign
+counts = cosine_similarity(es_df,esdf)
+ec_sovereign = pd.DataFrame(counts.T, index=file_list)
+ec_sovereign=ec_sovereign.rename(columns={0: "sovereign"})
+
+# compare in one table
+ec = pd.concat([ec_open, ec_sovereign], axis=1, sort=False)
+
+#################
+# Politics
+#################
+
+file_list = []
+file_name = "un/output/po_deciders.csv"
+with open(file_name) as f_input:
+    file_list = f_input.read().split('\n')
+
+## Run the Deciders Against the Corpus to get comparison
+deciders = []
+for one_file in file_list:
+    decider = "un/data/"+one_file
+    with open(decider) as f_input:
+        deciders.append(f_input.read())
+
+sovereigns = []
+file_name = "un/output/po_sov_corpus.csv"
+with open(file_name) as f_input:
+    sovereigns = f_input.read().split('\n')
+
+currents = []
+file_name = "un/output/po_op_corpus.csv"
+with open(file_name) as f_input:
+    currents = f_input.read().split('\n')
+
+## Open Internet TF/IDF
+
+#define the vectorizer, and the ngram range (one to two words)
+#3-gram would be nice but I keep running out of memory
+po_vectorizer = TfidfVectorizer(ngram_range=(1, 2))
+
+#fit the corpus to the vectorizer, and get the feature names
+po_vectors = po_vectorizer.fit_transform(currents)
+po_feature_names = po_vectorizer.get_feature_names()
+po_dense = po_vectors.todense()
+po_denselist = po_dense.tolist()
+
+#put the resulting calculations into a df and use feature_names for column names
+po_df = pd.DataFrame(po_denselist, columns=po_feature_names)
+
+#use the same open vectorizers i used for the deciders
+po_vectors = po_vectorizer.transform(deciders)
+po_feature_names = po_vectorizer.get_feature_names()
+po_dense = po_vectors.todense()
+po_denselist = po_dense.tolist()
+
+#deciders using the open vectorizer
+#eodf = pd.DataFrame(eo_denselist)
+podf = pd.DataFrame(po_denselist, columns=po_feature_names, index=file_list)
+
+# there is a lot of 0.00 so just pull out a few specific features
+
+# compare deciders with open
+counts = cosine_similarity(po_df,podf)
+pl_open = pd.DataFrame(counts.T, index=file_list)
+pl_open=pl_open.rename(columns={0: "open"})
+
+## Sovereign Internet TF/IDF
+
+#define the vectorizer, and the ngram range (one to three words)
+ps_vectorizer = TfidfVectorizer(ngram_range=(1, 2))
+
+#fit the corpus to the vectorizer, and get the feature names
+ps_vectors = ps_vectorizer.fit_transform(sovereigns)
+ps_feature_names = ps_vectorizer.get_feature_names()
+ps_dense = ps_vectors.todense()
+ps_denselist = ps_dense.tolist()
+
+#put the resulting calculations into a df and use feature_names for column names
+ps_df = pd.DataFrame(ps_denselist, columns=ps_feature_names)
+
+#use the same sovereign vectorizers i used
+ps_vectors = ps_vectorizer.transform(deciders)
+ps_feature_names = ps_vectorizer.get_feature_names()
+ps_dense = ps_vectors.todense()
+ps_denselist = ps_dense.tolist()
+
+#deciders using the sovereign vectorizer
+psdf = pd.DataFrame(ps_denselist, columns=ps_feature_names, index=file_list)
+
+# compare deciders with sovereign
+counts = cosine_similarity(ps_df,psdf)
+pl_sovereign = pd.DataFrame(counts.T, index=file_list)
+pl_sovereign=pl_sovereign.rename(columns={0: "sovereign"})
+
+# compare in one table
+pl = pd.concat([pl_open, pl_sovereign], axis=1, sort=False)
+
