@@ -5,63 +5,147 @@
 # Part 3: Using a Classifier
 # # # # # # # # # #
 
-import nltk.classify.util
-from nltk.classify import NaiveBayesClassifier
+'''
+On the international stage, there are two visions of the Internet: an Internet open and free for all ideas and an
+Internet that should be restricted to within their boundaries to show only "approved" ideas. The United States and
+many other Western countries favor an open Internet, while Russia, China, and other restrictive societies prefer
+the "sovereign" Internet.
 
-a = "I hate this"
-b= " Zit city."
-c= "I wanted to love it but it just wasn't meant for me"
-d= "You killed it. FIVE STARS"
-e= "I hated it and then I realized I was using it wrong."
+New America (https://www.newamerica.org/cybersecurity-initiative/reports/digital-deciders/analyzing-the-clusters)
+defines Digital Deciders as countries that have not yet picked a side.
 
-reviews = [a,b,c,d,e]
+We apply natural language processing tools on General Debate speeches made in the United Nations General Assembly
+from 1970 to 2018 to determine which worldview the Digital Deciders are more likely to lean towards.
 
-#import nltk
-#nltk.download('movie_reviews')
+[Story on GitHub](https://fr48.github.io/prtfl)
+[Project on GitHub](https://github.com/fr48/unga)
+'''
 
-for r in reviews:
-    NB = TextBlob(r,analyzer=NaiveBayesAnalyzer()).sentiment
-    P = TextBlob(r).sentiment
-    print(r,"\n", "bayes=", NB, "\npattern=", P)
+'''
+## Part Three: Creating a classifer
 
+I am going to use the Naive Bayes text classifier to see if I can train the system to predict 
+where Digital Deciders should go
+
+* Read in the relevant speeches from sovereign and open groups and tag them as open or sovereign
+* tokenize by sentence
+* Hold back some of the speeches for testing
+'''
+
+# import nltk.classify.util
+# from nltk.classify import NaiveBayesClassifier
+
+import pandas as pd
+from nltk import sent_tokenize
 from textblob.classifiers import NaiveBayesClassifier
+from sklearn.model_selection import train_test_split
 
-# train set is a list of strings [(),(),()]
+file_list = []
+file_name = "un/data/unga_speeches.txt"
+with open(file_name) as f_input:
+    file_list = f_input.read().split('\n')
 
-train=[
-  ('Amazing blend and it is easy to apply.. The product stayed on my face and did not cake up.','over54'),
-  ('I’m in love with it ❤️ it’s has a great coverage','25-34'),
-  ('Everyone raves about this, but kinda looks cakey on me. Pretty much like CC cream without the benefits; good coverage tho','13-17'),
-  ('I have finally found a hydrating foundation that covers up the redness on my face. It has such an easy application.','35-44'),
-  ('My skin looks hydrated and bouncy all day long. And it covers all day. My skin never looks dry or flaky.','35-44'),
-  ('This Foundation did not sit well on top of my moisturizer and regular sunscreen. It clung to my dry patches it did not sink in to my skin.','35-44'),
-  ('I waited to write a review until I had used this foundation multiple times, and I am very very disappointed with it.','13-17'),
-  ('LOVE the primer but the foundation looks blotchy, does not stay on, and is extremely hard to blend regardless of my application tool.','13-17'),
-  ('I think this will be a perfect winter foundation as my skin tend to dry out a bit.','25-34'),
-  ('I really wanted this foundation to work out. Rihanna is really doing a good job with her lines buuuut this fell a little short.','over54'),
-  ('Very little coverage and left my face super oily. Guess this foundation does not work for me. will be returning','25-34'),
-  ('I LOVE this foundation. The shade is perfect, it feels so comfortable, and wears very well!','25-34'),
-]
+# New America definitions
+digital = ['ALB', 'ARG', 'ARM', 'BOL', 'BIH', 'BWA', 'BRA', 'COL', 'COG', 'CRI',
+           'CIV', 'DOM', 'ECU', 'SLV', 'GEO', 'GHA', 'GTM', 'HND', 'IND', 'IDN',
+           'IRQ', 'JAM', 'JOR', 'KEN', 'KWT', 'KGZ', 'LBN', 'MKD', 'MYS', 'MEX',
+           'MNG', 'MAR', 'NAM', 'NIC', 'NGA', 'PAK', 'PAN', 'PNG', 'PRY', 'PER',
+           'PHL', 'MDA', 'SRB', 'SGP', 'ZAF', 'LKA', 'THA', 'TUN', 'UKR', 'URY']
 
-test=[
-    ('I love her other foundation so I wanted to try this one and I am glad I did this one is more hydrating so this is great for good season perfect for dry skin.','25-34'),
-    ('Very very unimpressed still. Probably a throw away foundation for me.','13-17'),
-    ('I could not get this foundation to set. I would slightly touch it and they would be so much of it under my nails, I could not handle it anymore and had to return it.','over54')
- ]
+global_open = ['GBR', 'CAN', 'AUS', 'DEU', 'JPN', 'SWE', 'NLD', 'USA', 'NOR',
+               'FIN', 'CHE', 'EST', 'ESP', 'POL', 'NZL', 'KOR', 'AUT', 'IRL', 'CZE',
+               'PRT', 'DNK', 'ITA', 'LVA', 'LTU', 'LUX', 'BEL', 'SVN', 'GRC', 'CHL',
+               'CYP', 'SVK', 'ISR', 'HRV', 'BGR', 'HUN', 'ROU', 'FRA']
 
-my_classifier = NaiveBayesClassifier(train)
-my_classifier.classify("thanks riri for this amazing foundation")
+sovereign_controlled = ['SAU', 'ZWE', 'VEN', 'SWZ', 'CUB', 'IRN', 'DZE', 'LBY',
+                        'QAT', 'TUR', 'ARE', 'BLR', 'RUS', 'CHN', 'KAZ', 'OMN', 'BHR', 'AZE', 'VNM',
+                        'CMR', 'TKM', 'TJK', 'SYR', 'PRK', 'UZB', 'AGO', 'EGY']
 
-prob_dist = my_classifier.prob_classify('Fenty foundation is now the only foundation I use')
+sovereigns = []
+currents = []
+deciders = []
+unknowns = []
+
+for one_file in file_list:
+    if (one_file[8:11]) in global_open:
+        currents.append(one_file)
+    elif (one_file[8:11]) in sovereign_controlled:
+        sovereigns.append(one_file)
+    elif (one_file[8:11]) in digital:
+        deciders.append(one_file)
+    else:
+        unknowns.append(one_file)
+
+sov_files = []
+
+for sovereign in sovereigns:
+    sovereign = 'un/data/' + sovereign
+    with open(sovereign) as f_input:
+        sov_files.append(f_input.read())
+
+new_sov = []
+for speech in sov_files:
+    sentences = sent_tokenize(speech)
+    for sentence in sentences:
+        new_sov.append(sentence)
+
+#tag each sentence as 'SOV'
+new_sov = pd.DataFrame(new_sov)
+new_sov =new_sov.rename(columns={0: "sentences"})
+
+new_sov['group']='SOV'
+
+open_files = []
+
+for current in currents:
+    current = 'un/data/' + current
+    with open(current) as f_input:
+        open_files.append(f_input.read())
+
+new_open = []
+for speech in open_files:
+    sentences = sent_tokenize(speech)
+    for sentence in sentences:
+        new_open.append(sentence)
+
+#tag each sentence as 'OPN'
+new_open = pd.DataFrame(new_open)
+new_open =new_open.rename(columns={0: "sentences"})
+
+new_open['group']='OPN'
+
+speeches = pd.concat([new_open, new_sov], axis=0, sort=False)
+
+# Decider files
+decider_files = []
+
+for decider in deciders:
+    decider = 'un/data/' + decider
+    with open(decider) as f_input:
+        decider_files.append(f_input.read())
+
+new_decider = []
+for speech in decider_files:
+    sentences = sent_tokenize(speech)
+    for sentence in sentences:
+        new_decider.append(sentence)
+
+# create classifier
+train, test = train_test_split(speeches, test_size=0.1)
+
+train_set = list(train.itertuples(index=False, name=None))
+test_set = list(test.itertuples(index=False, name=None))
+
+my_classifier = NaiveBayesClassifier(train_set)
+
+#try out the deciders
+my_classifier.classify(new_decider[0])
+prob_dist = my_classifier.prob_classify(new_decider[1])
 print(prob_dist.max())
-print(round(prob_dist.prob('13-17'), 2))
-print(round(prob_dist.prob('25-34'),2))
-print(round(prob_dist.prob('over54'),2))
+print(round(prob_dist.prob('SOV'), 2))
+print(round(prob_dist.prob('OPN'),2))
 
-accuracy=my_classifier.accuracy(test)
+#test accuracy
+accuracy=my_classifier.accuracy(test_set)
 print(accuracy)
 informative=my_classifier.show_informative_features(5)
-
-#alt_classifier = NaiveBayesClassifier([x for x in train if (train???)])
-#    eve indices
-#alt_accuracy = alt.classifier.accuracy(test)
